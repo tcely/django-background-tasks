@@ -10,6 +10,19 @@ jobs:
   tox:
     runs-on: ubuntu-latest
     steps:
+    - name: Remove owner from repository
+      id: repo
+      run: |
+        printf -- '%s=%s\n' >> "${GITHUB_OUTPUT}" \
+          'repository' "${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}"
+    - uses: actions/setup-python@v5
+      with:
+        python-version: |
+          3.8
+          3.9
+          3.10
+          3.11
+          3.12
     - uses: actions/checkout@v4
     - name: Install Dependencies
       run: |
