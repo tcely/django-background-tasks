@@ -5,6 +5,11 @@ on:
     branches: [ "*-v[0-9]*" ]
   pull_request:
     branches: [ "*-v[0-9]*" ]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 
 jobs:
   tox:
