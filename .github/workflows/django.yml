@@ -1,0 +1,56 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ "*-v[0-9]*" ]
+  pull_request:
+    branches: [ "*-v[0-9]*" ]
+
+jobs:
+  tox:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Remove owner from repository
+      id: repo
+      run: |
+        printf -- '%s=%s\n' >> "${GITHUB_OUTPUT}" \
+          'repository' "${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}"
+    - uses: actions/setup-python@v5
+      with:
+        python-version: |
+          3.8
+          3.9
+          3.10
+          3.11
+          3.12
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox
+        pip install -r requirements-test.txt
+    - name: Run tox
+      run: tox
+
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-test.txt
+        pip install -r requirements.txt
+    - name: Run Tests
+      run: |
+        python manage.py test
