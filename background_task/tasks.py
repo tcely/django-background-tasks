@@ -247,7 +247,7 @@ class DBTaskRunner(object):
             ).filter(
                 task_name__in=tasks._tasks
             )
-            for task in Task.objects.limit_available(available_tasks, 5):
+            for task in Task.objects.limit_available(available_tasks, 15):
                 # try to lock task
                 locked_task = task.lock(self.worker_name)
                 if locked_task:
