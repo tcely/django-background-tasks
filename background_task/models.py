@@ -44,7 +44,7 @@ class TaskManager(models.Manager):
     def created_by(self, creator):
         return self.get_queryset().created_by(creator)
 
-    def find_available(self, queue=None):
+    def find_available(self, queue=None, limit=None):
         now = timezone.now()
         qs = self.unlocked(now)
         if queue:
@@ -53,7 +53,7 @@ class TaskManager(models.Manager):
         _priority_ordering = '{}priority'.format(
             app_settings.BACKGROUND_TASK_PRIORITY_ORDERING)
         ready = ready.order_by(_priority_ordering, 'run_at')
-        return ready
+        return self.limit_available(ready, limit)
 
     def unlocked(self, now):
         max_run_time = app_settings.BACKGROUND_TASK_MAX_RUN_TIME
