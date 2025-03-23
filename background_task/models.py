@@ -44,7 +44,7 @@ class TaskManager(models.Manager):
     def created_by(self, creator):
         return self.get_queryset().created_by(creator)
 
-    def find_available(self, queue=None):
+    def find_available(self, queue=None, limit=None):
         now = timezone.now()
         qs = self.unlocked(now)
         if queue:
@@ -53,16 +53,8 @@ class TaskManager(models.Manager):
         _priority_ordering = '{}priority'.format(
             app_settings.BACKGROUND_TASK_PRIORITY_ORDERING)
         ready = ready.order_by(_priority_ordering, 'run_at')
-
-        if app_settings.BACKGROUND_TASK_RUN_ASYNC:
-            currently_failed = self.failed().count()
-            currently_locked = self.locked(now).count()
-            count = app_settings.BACKGROUND_TASK_ASYNC_THREADS - \
-                (currently_locked - currently_failed)
-            if count > 0:
-                ready = ready[:count]
-            else:
-                ready = self.none()
+        if limit is not None:
+            return self.limit_available(ready, limit)
         return ready
 
     def unlocked(self, now):
@@ -81,11 +73,26 @@ class TaskManager(models.Manager):
 
     def failed(self):
         """
-        `currently_locked - currently_failed` in `find_available` assues that
-        tasks marked as failed are also in processing by the running PID.
+        `currently_locked - currently_failed` in `limit_available` assumes
+        that tasks marked as failed are also in processing by the running PID.
         """
         qs = self.get_queryset()
         return qs.filter(failed_at__isnull=False)
+ 
+    def limit_available(self, available, limit=None):
+        if not app_settings.BACKGROUND_TASK_RUN_ASYNC:
+            if limit is not None:
+                return available[:limit]
+            return available
+        now = timezone.now()
+        currently_failed = self.failed().count()
+        currently_locked = self.locked(now).count()
+        count = app_settings.BACKGROUND_TASK_ASYNC_THREADS - \
+            (currently_locked - currently_failed)
+        if count > 0:
+            return available[:count]
+        else:
+            return self.none()
 
     def new_task(self, task_name, args=None, kwargs=None,
                  run_at=None, priority=0, queue=None, verbose_name=None,
