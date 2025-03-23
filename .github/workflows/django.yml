@@ -5,10 +5,16 @@ on:
     branches: [ "*-v[0-9]*" ]
   pull_request:
     branches: [ "*-v[0-9]*" ]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 
 jobs:
   tox:
     runs-on: ubuntu-latest
+    if: ${{ 'pull_request' == github.event_name && ! github.event.pull_request.draft }}
     steps:
     - name: Remove owner from repository
       id: repo
