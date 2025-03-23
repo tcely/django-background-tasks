@@ -9,6 +9,7 @@ on:
 jobs:
   tox:
     runs-on: ubuntu-latest
+    if: ${{ github.base_ref }}
     steps:
     - name: Remove owner from repository
       id: repo
