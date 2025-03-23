@@ -53,7 +53,9 @@ class TaskManager(models.Manager):
         _priority_ordering = '{}priority'.format(
             app_settings.BACKGROUND_TASK_PRIORITY_ORDERING)
         ready = ready.order_by(_priority_ordering, 'run_at')
-        return self.limit_available(ready, limit)
+        if limit is not None:
+            return self.limit_available(ready, limit)
+        return ready
 
     def unlocked(self, now):
         max_run_time = app_settings.BACKGROUND_TASK_MAX_RUN_TIME
