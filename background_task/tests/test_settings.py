@@ -2,6 +2,7 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+import os
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -10,7 +11,7 @@ DATABASES = {
                  # the disk, instead of creating it in memory.
                  # We need this to test the async behavior.
             {
-                'NAME': 'test_db',
+                'NAME': str(os.getpid()) + '-test_db',
             },
         'USER': '',
         'PASSWORD': '',

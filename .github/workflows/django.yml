@@ -36,7 +36,7 @@ jobs:
         pip install tox
         pip install -r requirements-test.txt
     - name: Run tox
-      run: tox
+      run: tox run-parallel --parallel auto --parallel-live
 
   build:
 
