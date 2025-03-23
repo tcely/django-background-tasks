@@ -242,7 +242,9 @@ class DBTaskRunner(object):
 
     def get_task_to_run(self, tasks, queue=None):
         try:
-            available_tasks = Task.objects.find_available(queue).filter(task_name__in=tasks._tasks)[:5]
+            available_tasks = Task.objects.find_available(queue)
+            if not app_settings.BACKGROUND_TASK_RUN_ASYNC:
+                available_tasks = available_tasks.filter(task_name__in=tasks._tasks)[:5]
             for task in available_tasks:
                 # try to lock task
                 locked_task = task.lock(self.worker_name)
