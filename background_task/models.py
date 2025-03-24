@@ -65,14 +65,16 @@ class TaskManager(models.Manager):
         max_run_time = app_settings.BACKGROUND_TASK_MAX_RUN_TIME
         qs = self.get_queryset()
         expires_at = now - timedelta(seconds=max_run_time)
-        unlocked = Q(locked_by=None) | Q(locked_at__lt=expires_at) | Q(locked_at__lt=self.booted_at)
+        when_dt = max(self.booted_at, expires_at)
+        unlocked = Q(locked_by=None) | Q(locked_at__lt=when_dt)
         return qs.filter(unlocked)
 
     def locked(self, now):
         max_run_time = app_settings.BACKGROUND_TASK_MAX_RUN_TIME
         qs = self.get_queryset()
         expires_at = now - timedelta(seconds=max_run_time)
-        locked = Q(locked_by__isnull=False) & Q(locked_at__gt=expires_at) & Q(locked_at__gt=self.booted_at)
+        when_dt = max(self.booted_at, expires_at)
+        locked = Q(locked_by__isnull=False) & Q(locked_at__gt=when_dt)
         return qs.filter(locked)
 
     def failed(self):
