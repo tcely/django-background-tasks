@@ -12,9 +12,29 @@ on:
       - ready_for_review
 
 jobs:
+  python:
+    runs-on: ubuntu-latest
+    env:
+      PYVERSIONS: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+    outputs:
+      versions: ${{ steps.versions.outputs.versions }}
+      version_strings:  ${{ steps.versions.outputs.strings }}
+    steps:
+    - id: versions
+      run: |
+        {
+          printf -- '%s=%s\n' \
+            'versions' '${{ env.PYVERSIONS }}'
+          delim='EOF'
+          printf -- '%s<<%s\n' strings "${delim}"
+          jq -r '.[]' -- <<<'${{ env.PYVERSIONS }}'
+          printf -- '%s\n' "${delim}"
+        } >> "${GITHUB_OUTPUT}"
+
   tox:
     runs-on: ubuntu-latest
     if: ${{ 'pull_request' == github.event_name && ! github.event.pull_request.draft }}
+    needs: python
     steps:
     - name: Remove owner from repository
       id: repo
@@ -24,11 +44,7 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: |
-          3.8
-          3.9
-          3.10
-          3.11
-          3.12
+          ${{ needs.python.outputs.version_strings }}
     - uses: actions/checkout@v4
     - name: Install Dependencies
       run: |
@@ -41,22 +57,35 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    needs: python
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ${{ fromJSON(needs.python.outputs.versions) }}
 
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install flake8 pylint
         pip install -r requirements-test.txt
         pip install -r requirements.txt
     - name: Run Tests
       run: |
         python manage.py test
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Analysing the code with pylint
+      run: |
+        pylint $(git ls-files '*.py') || _rv="$?"
+        printf -- 'Returned: %d\n' "${_rv:-0}"
+
