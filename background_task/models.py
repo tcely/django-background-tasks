@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as tz
 from hashlib import sha1
 import json
 import logging
@@ -38,6 +38,10 @@ class TaskQuerySet(models.QuerySet):
 
 class TaskManager(models.Manager):
 
+    booted_at = datetime(1970, 1, 1, tzinfo=tz.utc) + timedelta(
+        seconds=os.path.getmtime('/proc/kcore'),
+    )
+
     def get_queryset(self):
         return TaskQuerySet(self.model, using=self._db)
 
@@ -61,14 +65,14 @@ class TaskManager(models.Manager):
         max_run_time = app_settings.BACKGROUND_TASK_MAX_RUN_TIME
         qs = self.get_queryset()
         expires_at = now - timedelta(seconds=max_run_time)
-        unlocked = Q(locked_by=None) | Q(locked_at__lt=expires_at)
+        unlocked = Q(locked_by=None) | Q(locked_at__lt=expires_at) | Q(locked_at__lt=self.booted_at)
         return qs.filter(unlocked)
 
     def locked(self, now):
         max_run_time = app_settings.BACKGROUND_TASK_MAX_RUN_TIME
         qs = self.get_queryset()
         expires_at = now - timedelta(seconds=max_run_time)
-        locked = Q(locked_by__isnull=False) & Q(locked_at__gt=expires_at)
+        locked = Q(locked_by__isnull=False) & Q(locked_at__gt=expires_at) & Q(locked_at__gt=self.booted_at)
         return qs.filter(locked)
 
     def failed(self):
