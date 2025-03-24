@@ -26,7 +26,7 @@ jobs:
           'repository' "${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}"
     - uses: actions/setup-python@v5
       with:
-        python-version: ${{ fromJSON( env.PYTHON_VERSIONS ) }}
+        python-version: ${{ fromJSON(env.PYTHON_VERSIONS) }}
     - uses: actions/checkout@v4
     - name: Install Dependencies
       run: |
@@ -42,7 +42,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ${{ fromJSON( env.PYTHON_VERSIONS ) }}
+        python-version: ${{ fromJSON(env.PYTHON_VERSIONS) }}
 
     steps:
     - uses: actions/checkout@v4
