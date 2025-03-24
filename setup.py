@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-import codecs
 
 version = __import__('background_task').__version__
 

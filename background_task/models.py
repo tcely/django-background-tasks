@@ -78,7 +78,7 @@ class TaskManager(models.Manager):
         """
         qs = self.get_queryset()
         return qs.filter(failed_at__isnull=False)
- 
+
     def limit_available(self, available, limit=None):
         if not app_settings.BACKGROUND_TASK_RUN_ASYNC:
             if limit is not None:
