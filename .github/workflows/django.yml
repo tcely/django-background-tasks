@@ -18,11 +18,18 @@ jobs:
       PYVERSIONS: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
     outputs:
       versions: ${{ steps.versions.outputs.versions }}
+      version_strings:  ${{ steps.versions.outputs.strings }}
     steps:
     - id: versions
       run: |
-        printf -- '%s=%s\n' >> "${GITHUB_OUTPUT}" \
-          'versions' '${{ env.PYVERSIONS }}'
+        {
+          printf -- '%s=%s\n' \
+            'versions' '${{ env.PYVERSIONS }}'
+          delim='EOF'
+          printf -- '%s<<%s\n' strings "${delim}"
+          jq -r '.[]' -- <<<'${{ env.PYVERSIONS }}'
+          printf -- '%s\n' "${delim}"
+        } >> "${GITHUB_OUTPUT}"
 
   tox:
     runs-on: ubuntu-latest
@@ -36,7 +43,8 @@ jobs:
           'repository' "${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}"
     - uses: actions/setup-python@v5
       with:
-        python-version: ${{ fromJSON(needs.python.outputs.versions) }}
+        python-version: |
+          ${{ needs.python.outputs.version_strings }}
     - uses: actions/checkout@v4
     - name: Install Dependencies
       run: |
