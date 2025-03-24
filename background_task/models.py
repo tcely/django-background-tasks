@@ -202,9 +202,14 @@ class Task(models.Model):
         Check if the locked_by process is still running.
         """
         if self.locked_by:
+            pid, boot_time, nodename = self.locked_by.split('-', 2)
+            if not os.uname().nodename.startswith(nodename):
+                return False
             try:
+                if int(os.path.getmtime('/proc/kcore')) != int(boot_time):
+                    return False
                 # won't kill the process. kill is a bad named system call
-                os.kill(int(self.locked_by), 0)
+                os.kill(int(pid), 0)
                 return True
             except:
                 return False
