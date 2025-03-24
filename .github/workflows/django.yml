@@ -17,7 +17,12 @@ jobs:
     env:
       PYVERSIONS: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
     outputs:
-      versions: ${{ env.PYVERSIONS }}
+      versions: ${{ steps.versions.outputs.versions }}
+    steps:
+    - id: versions
+      run: |
+        printf -- '%s=%s\n' >> "${GITHUB_OUTPUT}" \
+          'versions' '${{ env.PYVERSIONS }}'
 
   tox:
     runs-on: ubuntu-latest
