@@ -311,7 +311,14 @@ def autodiscover():
     from django.conf import settings
 
     for app in settings.INSTALLED_APPS:
-        try:
-            import_module("%s.tasks" % app)
-        except ImportError:
-            continue
+        modules = {
+            app.split('.', 1)[0],
+            app,
+        }
+        for m in modules:
+            try:
+                import_module("%s.tasks" % m)
+            except ImportError:
+                continue
+            else:
+                break
