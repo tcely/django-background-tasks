@@ -54,9 +54,9 @@ class TaskManager(models.Manager):
         if queue:
             qs = qs.filter(queue=queue)
         ready = qs.filter(run_at__lte=now, failed_at=None)
-        _priority_ordering = '{}priority'.format(
-            app_settings.BACKGROUND_TASK_PRIORITY_ORDERING)
-        ready = ready.order_by(_priority_ordering, 'run_at')
+        # The setting below returns one of these strings: '' or '-'
+        _e_or_m = app_settings.BACKGROUND_TASK_PRIORITY_ORDERING
+        ready = ready.order_by(f'{_e_or_m}priority', 'run_at')
         if limit is not None:
             return self.limit_available(ready, limit)
         return ready
@@ -82,7 +82,7 @@ class TaskManager(models.Manager):
         """
         qs = self.get_queryset()
         return qs.filter(failed_at__isnull=False)
- 
+
     def limit_available(self, available, limit=None):
         if not app_settings.BACKGROUND_TASK_RUN_ASYNC:
             if limit is not None:
