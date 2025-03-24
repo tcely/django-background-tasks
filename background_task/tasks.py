@@ -211,7 +211,10 @@ class DBTaskRunner(object):
     '''
 
     def __init__(self):
-        self.worker_name = str(os.getpid())
+        pid = os.getpid()
+        nodename = os.uname().nodename
+        boot_time = os.path.getmtime('/proc/kcore')
+        self.worker_name = f'{pid:d}-{int(boot_time):d}-{nodename:s}'[:64]
 
     def schedule(self, task_name, args, kwargs, run_at=None,
                  priority=0, action=TaskSchedule.SCHEDULE, queue=None,
