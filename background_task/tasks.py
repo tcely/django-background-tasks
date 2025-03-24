@@ -242,9 +242,12 @@ class DBTaskRunner(object):
 
     def get_task_to_run(self, tasks, queue=None):
         try:
-            available_tasks = [task for task in Task.objects.find_available(queue)
-                               if task.task_name in tasks._tasks][:5]
-            for task in available_tasks:
+            available_tasks = Task.objects.find_available(
+                queue
+            ).filter(
+                task_name__in=tasks._tasks
+            )
+            for task in Task.objects.limit_available(available_tasks, 15):
                 # try to lock task
                 locked_task = task.lock(self.worker_name)
                 if locked_task:
@@ -308,7 +311,14 @@ def autodiscover():
     from django.conf import settings
 
     for app in settings.INSTALLED_APPS:
-        try:
-            import_module("%s.tasks" % app)
-        except ImportError:
-            continue
+        modules = {
+            app.split('.', 1)[0],
+            app,
+        }
+        for m in modules:
+            try:
+                import_module("%s.tasks" % m)
+            except ImportError:
+                continue
+            else:
+                break
