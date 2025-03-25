@@ -207,27 +207,33 @@ class Task(models.Model):
         """
         Check if the locked_by process is still running.
         """
-        if self.locked_by:
-            try:
-                pid, boot_time, nodename = self.locked_by.split('-', 2)
-                boot_time = int(boot_time)
-            except ValueError:
-                pid = self.locked_by
-                boot_time = int()
-                nodename = str()
-            else:
-                if not os.uname().nodename.startswith(nodename):
-                    return False
-            try:
-                if boot_time and int(os.path.getmtime('/proc/kcore')) != boot_time:
-                    return False
-                # won't kill the process. kill is a bad named system call
-                os.kill(int(pid), 0)
-                return True
-            except:
-                return False
-        else:
+        if not self.locked_by:
             return None
+        pid = self.locked_by
+        boot_time = nodename = None
+        try:
+            pid, boot_time, nodename = self.locked_by.split('-', 2)
+        except ValueError:
+            pass
+        else:
+            try:
+                if not os.uname().nodename.startswith(nodename):
+                    raise ValueError('node name did not match')
+                _mtime = os.path.getmtime('/proc/kcore')
+                if int(_mtime) != int(boot_time):
+                    raise ValueError('boot time did not match')
+            except (TypeError, ValueError, OSError):
+                return False
+        try:
+            pid = int(pid)
+            # Sending the zero signal number won't kill the process.
+            if pid <= 1:
+                raise ValueError('Not an allowed process ID number')
+            os.kill(pid, 0)
+        except (TypeError, ValueError, ProcessLookupError):
+            return False
+        else:
+            return True
     locked_by_pid_running.boolean = True
 
     def has_error(self):
