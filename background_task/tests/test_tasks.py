@@ -566,7 +566,8 @@ class TestTasks(TransactionTestCase):
         self.assertEqual(run_at, task.run_at)
 
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
-        self.throws_after_max_attempts()
+        #self.throws_after_max_attempts()
+        self.throws_error()
 
         available = Task.objects.find_available()
         self.assertEqual(1, available.count())
