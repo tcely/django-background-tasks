@@ -1,2 +1,2 @@
-fuckit
+git+https://github.com/tcely/fuckitpy.git@python-3.12#egg=fuckit
 mock
