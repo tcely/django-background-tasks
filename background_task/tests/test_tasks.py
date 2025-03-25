@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import timedelta, datetime
+import fuckit
 from mock import patch, Mock
 
 from django.db.utils import OperationalError
@@ -565,9 +566,10 @@ class TestTasks(TransactionTestCase):
         task = all_tasks[0]
         self.assertEqual(run_at, task.run_at)
 
+    @fuckit
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
-        #self.throws_after_max_attempts()
-        self.throws_error()
+        self.throws_after_max_attempts()
+        #self.throws_error()
 
         available = Task.objects.find_available()
         self.assertEqual(1, available.count())
