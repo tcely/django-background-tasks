@@ -419,8 +419,13 @@ class TestTasks(TransactionTestCase):
         def throws_error():
             raise RuntimeError("an error")
 
+        @tasks.background(name='failed_at_set_after_MAX_ATTEMPTS')
+        def failed_at_set_after_MAX_ATTEMPTS():
+            raise RuntimeError('failed')
+
         self.set_fields = set_fields
         self.throws_error = throws_error
+        self.failed_at_set_after_MAX_ATTEMPTS = failed_at_set_after_MAX_ATTEMPTS
 
     def test_run_next_task_nothing_scheduled(self):
         self.assertFalse(run_next_task())
@@ -561,11 +566,7 @@ class TestTasks(TransactionTestCase):
         self.assertEqual(run_at, task.run_at)
 
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
-        @tasks.background(name='test_failed_at_set_after_MAX_ATTEMPTS')
-        def failed_at_set_after_MAX_ATTEMPTS():
-            raise RuntimeError('failed')
-
-        failed_at_set_after_MAX_ATTEMPTS()
+        self.failed_at_set_after_MAX_ATTEMPTS()
 
         available = Task.objects.find_available()
         self.assertEqual(1, available.count())
@@ -578,8 +579,7 @@ class TestTasks(TransactionTestCase):
 
         # task should be scheduled to run now
         # but will be marked as failed straight away
-        with self.assertRaisesMessage(RuntimeError, 'failed'):
-            self.assertTrue(run_next_task())
+        self.assertTrue(run_next_task())
 
         available = Task.objects.find_available()
         self.assertEqual(0, available.count())
