@@ -578,7 +578,8 @@ class TestTasks(TransactionTestCase):
 
         # task should be scheduled to run now
         # but will be marked as failed straight away
-        self.assertTrue(run_next_task())
+        with self.assertRaisesMessage(RuntimeError, 'failed'):
+            self.assertTrue(run_next_task())
 
         available = Task.objects.find_available()
         self.assertEqual(0, available.count())
