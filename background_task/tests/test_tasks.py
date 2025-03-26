@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import timedelta, datetime
-import fuckit
 from mock import patch, Mock
 
 from django.db.utils import OperationalError
@@ -420,10 +419,9 @@ class TestTasks(TransactionTestCase):
         def throws_error():
             raise RuntimeError("an error")
 
-        @fuckit
         @tasks.background(name='throws_after_max_attempts')
         def throws_after_max_attempts():
-            raise RuntimeError('task failed after max attempts')
+            raise RuntimeError('task exceeded max attempts')
 
         self.set_fields = set_fields
         self.throws_error = throws_error
