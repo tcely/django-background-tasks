@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import timedelta, datetime
-from mock import patch, Mock
-
+import sys
+if sys.version_info < (3, 3,):
+    from mock import patch, Mock
+else:
+    from unittest.mock import patch, Mock
 from django.db.utils import OperationalError
 from django.contrib.auth.models import User
 from django.test import override_settings
