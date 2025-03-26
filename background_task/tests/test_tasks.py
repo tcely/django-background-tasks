@@ -406,7 +406,6 @@ class TestTaskModel(TransactionTestCase):
         self.assertEqual(completed_task.repeat_until, task.repeat_until)
 
 
-@fuckit
 class TestTasks(TransactionTestCase):
 
     def setUp(self):
@@ -421,6 +420,7 @@ class TestTasks(TransactionTestCase):
         def throws_error():
             raise RuntimeError("an error")
 
+        @fuckit
         @tasks.background(name='throws_after_max_attempts')
         def throws_after_max_attempts():
             raise RuntimeError('task failed after max attempts')
