@@ -410,7 +410,7 @@ class TestTaskModel(TransactionTestCase):
 class TestTasks(TransactionTestCase):
 
     def setUp(self):
-        super(TestTasks, self).setUp()
+        super().setUp()
 
         @tasks.background(name='set_fields')
         def set_fields(**fields):
@@ -569,7 +569,6 @@ class TestTasks(TransactionTestCase):
 
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
         self.throws_after_max_attempts()
-        #self.throws_error()
 
         available = Task.objects.find_available()
         self.assertEqual(1, available.count())
