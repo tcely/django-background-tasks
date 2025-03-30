@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import timedelta, datetime
-from unittest import expectedFailure
 import sys
 if sys.version_info < (3, 3,):
     from mock import patch, Mock
@@ -564,7 +563,6 @@ class TestTasks(TransactionTestCase):
         task = all_tasks[0]
         self.assertEqual(run_at, task.run_at)
 
-    @expectedFailure
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
         @tasks.background(name='failed_at_set_after_MAX_ATTEMPTS')
         def failed_at_set_after_MAX_ATTEMPTS():
