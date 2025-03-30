@@ -409,7 +409,6 @@ class TestTaskModel(TransactionTestCase):
         self.assertEqual(completed_task.repeat_until, task.repeat_until)
 
 
-@expectedFailure
 class TestTasks(TransactionTestCase):
 
     def setUp(self):
@@ -424,13 +423,8 @@ class TestTasks(TransactionTestCase):
         def throws_error():
             raise RuntimeError("an error")
 
-        @tasks.background(name='throws_after_max_attempts')
-        def throws_after_max_attempts():
-            raise RuntimeError('task exceeded max attempts')
-
         self.set_fields = set_fields
         self.throws_error = throws_error
-        self.throws_after_max_attempts = throws_after_max_attempts
 
     def test_run_next_task_nothing_scheduled(self):
         self.assertFalse(run_next_task())
@@ -570,8 +564,13 @@ class TestTasks(TransactionTestCase):
         task = all_tasks[0]
         self.assertEqual(run_at, task.run_at)
 
+    @expectedFailure
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
-        self.throws_after_max_attempts()
+        @tasks.background(name='failed_at_set_after_MAX_ATTEMPTS')
+        def failed_at_set_after_MAX_ATTEMPTS():
+            raise RuntimeError('task exceeded max attempts')
+
+        failed_at_set_after_MAX_ATTEMPTS()
 
         available = Task.objects.find_available()
         self.assertEqual(1, available.count())
