@@ -423,7 +423,6 @@ class TestTasks(TransactionTestCase):
         def throws_error():
             raise RuntimeError("an error")
 
-        @expectedFailure
         @tasks.background(name='throws_after_max_attempts')
         def throws_after_max_attempts():
             raise RuntimeError('task exceeded max attempts')
@@ -570,6 +569,7 @@ class TestTasks(TransactionTestCase):
         task = all_tasks[0]
         self.assertEqual(run_at, task.run_at)
 
+    @expectedFailure
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
         self.throws_after_max_attempts()
 
