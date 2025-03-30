@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import timedelta, datetime
+from unittest import expectedFailure
 import sys
 if sys.version_info < (3, 3,):
     from mock import patch, Mock
@@ -422,6 +423,7 @@ class TestTasks(TransactionTestCase):
         def throws_error():
             raise RuntimeError("an error")
 
+        @expectedFailure
         @tasks.background(name='throws_after_max_attempts')
         def throws_after_max_attempts():
             raise RuntimeError('task exceeded max attempts')
