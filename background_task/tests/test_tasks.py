@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import timedelta, datetime
-from mock import patch, Mock
-
+import sys
+if sys.version_info < (3, 3,):
+    from mock import patch, Mock
+else:
+    from unittest.mock import patch, Mock
 from django.db.utils import OperationalError
 from django.contrib.auth.models import User
 from django.test import override_settings
@@ -408,7 +411,7 @@ class TestTaskModel(TransactionTestCase):
 class TestTasks(TransactionTestCase):
 
     def setUp(self):
-        super(TestTasks, self).setUp()
+        super().setUp()
 
         @tasks.background(name='set_fields')
         def set_fields(**fields):
@@ -561,9 +564,9 @@ class TestTasks(TransactionTestCase):
         self.assertEqual(run_at, task.run_at)
 
     def test_failed_at_set_after_MAX_ATTEMPTS(self):
-        @tasks.background(name='test_failed_at_set_after_MAX_ATTEMPTS')
+        @tasks.background(name='failed_at_set_after_MAX_ATTEMPTS')
         def failed_at_set_after_MAX_ATTEMPTS():
-            raise RuntimeError('failed')
+            raise RuntimeError('task exceeded max attempts')
 
         failed_at_set_after_MAX_ATTEMPTS()
 
